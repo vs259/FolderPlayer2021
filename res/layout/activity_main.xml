@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_audio_view"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="@drawable/folderbg"
+    >
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#ff8000"
+        android:text="Выбранный файл"
+        />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="fill_parent"
+        android:layout_height="45sp"
+        android:textSize="14sp"
+        android:textStyle="italic"
+        android:textColor="#a5c3f3"
+        android:text="Выбранная папка"
+        />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="250sp"
+        android:id="@+id/theview"
+        />
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="horizontal"
+        >
+
+        <ImageButton
+            android:id="@+id/prevBtn"
+            android:onClick="decCurrentPos"
+            android:layout_width="wrap_content"
+            android:layout_height="48sp"
+            android:src="@drawable/bw"
+            android:layout_weight="0"
+            android:layout_gravity="bottom"
+            />
+
+        <Button
+            android:id="@+id/SelectFolder"
+            android:onClick="onMyButtonClick"
+            android:layout_width="wrap_content"
+            android:layout_height="48sp"
+            android:text="@string/selectFolderBtn"
+            android:layout_weight="1"
+            android:layout_gravity="bottom"
+            />
+
+        <ImageButton
+            android:id="@+id/nextBtn"
+            android:onClick="incCurrentPos"
+            android:layout_width="wrap_content"
+            android:layout_height="48sp"
+            android:src="@drawable/fw"
+            android:layout_weight="0"
+            android:layout_gravity="bottom"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

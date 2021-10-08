@@ -1,0 +1,36 @@
+<resources>
+
+    <!-- Application -->
+    <string name="app_name">Проигрыватель mp3 V.A.</string>
+    <string name="app_ver">3.1</string>
+
+    <!-- Menus -->
+    <string name="quit">Выход</string>
+    <string name="about">О программе</string>
+    <string name="startbt">Старт блютуз</string>
+    <string name="scanbt">Поиск устройств БТ</string>
+    <string name="startServ">Передать аудио в гарнитуру</string>
+    <string name="stopServ">Остановить передачу аудио в гарнитуру</string>
+
+    <!-- Controls -->
+    <string name="selectFolderBtn">Выбрать папку</string>
+
+    <!-- Toasts -->
+    <string name="textNoFiles">В выбранной папке нет файлов mp3</string>
+    <string name="upSelected">Выбран предыдущий уровень</string>
+    <string name="fileNoSelected">Файл не выбран</string>
+    <string name="copiRight">(c) Веселов А. 2011-2021, http://copi.ru/5511/</string>
+    <string name="unableBT">Ваше устройство не поддерживает блютуз</string>
+    <string name="bluetoothIsOn">Блютуз включен</string>
+
+    <!--  DeviceListActivity -->
+    <string name="select_device">Выбор устройства БТ для подключения</string>
+    <string name="none_paired">Устройств БТ не обнаружено</string>
+    <string name="none_found">Устройства БТ не найдены</string>
+    <string name="title_paired_devices">Парные устройства БТ</string>
+    <string name="title_other_devices">Другие доступные устройства БТ</string>
+
+    <!--  Dialogs -->
+    <string name="OKBtn">ОК</string>
+
+</resources>
