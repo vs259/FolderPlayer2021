@@ -1,13 +1,10 @@
 package ru.vs259.folderplayer2021;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
@@ -17,24 +14,26 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.Handler;
 import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.MediaController;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener,
+        MediaController.MediaPlayerControl, View.OnTouchListener
+{
 
     private TextView mTextView1;
     private Button varSelectFolderBtn;
@@ -48,13 +47,20 @@ public class MainActivity extends AppCompatActivity {
     public static final String PREFS_NAME = "MyPrefsFile";            // Файл для хранения настроек
     private int currentPosition = 0;
 //    public static String START_DIR = "/mnt/sdcard";
-    public static String START_DIR = "/sdcard";
-    public static String MAIN_DIR = "/sdcard";
+    public static String START_DIR = "/storage/090D-5F26";
+    public static String MAIN_DIR = "/storage/090D-5F26";
     private List<String> songs = new ArrayList<String>();
 //    private static final int REQUEST_SELECT_DIR=99;
     final String ParentString = "..";
 
     private static final int MY_REQUEST_CODE_PERMISSION = 1000;
+
+    private Handler handler = new Handler();
+
+    private int oldPosition = 0;
+    private int newPosition = 0;
+
+
 
 
     ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -91,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 if (songs.size()>0)
                                 {
-//                                    playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition),0);
+                                    playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition),0);
                                 }
                                 else
                                 {
@@ -100,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             else                                                    // Выбран файл
                             {
-//                                startMyListActivity();
+                                startMyListActivity();
                             }
                         }
 //                    }
@@ -112,8 +118,6 @@ public class MainActivity extends AppCompatActivity {
                     Visualisation(START_DIR);
                 }
                 else{
-//                    textView.setText("Ошибка доступа");
-
                     Visualisation("Ошибка доступа");
                 }
             });
@@ -132,12 +136,12 @@ public class MainActivity extends AppCompatActivity {
                     Manifest.permission.READ_EXTERNAL_STORAGE);
 
             if (permisson != PackageManager.PERMISSION_GRANTED) {
+
                 // If don't have permission so prompt the user.
                 this.requestPermissions(
                         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                         MY_REQUEST_CODE_PERMISSION
                 );
-//                return;
             }
         }
 
@@ -149,9 +153,9 @@ public class MainActivity extends AppCompatActivity {
         varNextBtn = (ImageButton) findViewById(R.id.nextBtn);
 
         theView = this.findViewById(R.id.theview);
-//        theView.setOnTouchListener((View.OnTouchListener) this);
+        theView.setOnTouchListener((View.OnTouchListener) this);
 
-//        mp.setOnPreparedListener((MediaPlayer.OnPreparedListener) this);
+        mp.setOnPreparedListener((MediaPlayer.OnPreparedListener) this);
         mediaController = new MediaController(this);
 
         TelephonyManager teleMngr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
@@ -181,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
             if (songs.size()>0)
             {
                 mTextView3.setText(START_DIR + "/"+songs.get(currentPosition));
-//                playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition), PlayBackPos);
+                playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition), PlayBackPos);
             }
             else
             {
@@ -262,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
                 currentPosition=currentPosition+1;
 
             mTextView3.setText(songs.get(currentPosition));
-//            playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition), 0);
+            playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition), 0);
         }
     }
 
@@ -276,9 +280,8 @@ public class MainActivity extends AppCompatActivity {
                 currentPosition=currentPosition-1;
 
             mTextView3.setText(songs.get(currentPosition));
-//            playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition), 0);
+            playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition), 0);
         }
-        System.out.println("currentPosition = " + currentPosition);
     }
 
     // Создание списка воспроизведения
@@ -290,10 +293,127 @@ public class MainActivity extends AppCompatActivity {
 
         if (home.list(filter).length > 0)
         {
-            String[] songs = home.list(filter);
-            Arrays.sort(songs);
+            String[] files = home.list(filter);   // NB !!! Это массив, а не список
+            Arrays.sort(files);
+
+            for (String file : files)
+            {
+                songs.add(file);
+            }
         }
     }
+
+    // Организация потока по событию onPrepared
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        mediaController.setMediaPlayer(this);
+        mediaController.setAnchorView(findViewById(R.id.main_audio_view));
+
+        handler.post(new Runnable()
+        {
+            public void run()
+            {
+                mediaController.setEnabled(true);
+                mediaController.show();
+            }
+        });
+    }
+
+    @Override
+    public void start() {
+        mp.start();
+    }
+
+    @Override
+    public void pause() {
+        Saving(mp.getCurrentPosition());
+        mp.pause();
+    }
+
+    @Override
+    public int getDuration() {
+        return mp.getDuration();
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return mp.getCurrentPosition();
+    }
+
+    @Override
+    public void seekTo(int pos) {
+        mp.seekTo(pos);
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mp.isPlaying();
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return true;
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return 0;
+    }
+
+    // Управление медиаплеером путем касания прогрессбара
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+        // Панель медиа контроллера гаснет через 3 секунды
+        // Коснитесь экрана, чтобы вызвать ее вновь
+        mediaController.show();
+        return false;
+    }
+
+
+    @Override
+    // Организация перемотки при движении пальцем по экрану
+    public boolean onTouch(View v, MotionEvent me)
+    {
+
+        // Сравнить текущую позицию плеера с новой, если больше, то currentPosition+1, если меньше, то -1
+        int Action=me.getAction();
+
+        if (mp.isPlaying()) mp.pause();
+
+        switch(Action)
+        {
+            case MotionEvent.ACTION_DOWN: oldPosition=(int) me.getX();break;
+            case MotionEvent.ACTION_UP: newPosition=(int) me.getX();break;
+        };
+
+        if (newPosition>=oldPosition)
+        {
+            incCurrentPos();
+        }
+        else
+        {
+            decCurrentPos();
+        }
+
+        return true;
+    }
+
 
     // Создание фильтра по расширениям файлов
     class Mp3Filter implements FilenameFilter
@@ -309,5 +429,98 @@ public class MainActivity extends AppCompatActivity {
     {
         mTextView1.setText(text1);
     }
+
+    // Процедура запуска проигрывателя
+    private void playSong(String songPath, String songName,int _PlayBackPos)
+    {
+        try
+        {
+            // Визуализация - информация о проигрываемом файле
+            mTextView3.setText(songName+"      ("+(currentPosition+1)+"/"+songs.size()+")");
+
+            // Сброс и подготовка проигрывателя
+            mp.reset();
+
+            mp.setDataSource(songPath);
+            mp.prepare();
+            mp.seekTo(_PlayBackPos);
+            mp.start();
+
+
+            // Установка реакции на окончание проигрывания
+            mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
+            {
+                public void onCompletion(MediaPlayer arg0)
+                {
+                    if (++currentPosition >= songs.size())
+                    {
+                        // При достижении конца списка, указатель устанавливается в начало и проигрыватель останавливается
+                        currentPosition = 0;
+                        arg0.stop();
+                    }
+                    else
+                    {
+                        // Проигрывание следующей мелодии
+                        playSong(START_DIR + "/"+ songs.get(currentPosition), songs.get(currentPosition),0);
+                    }
+                }
+            });
+
+        }
+        catch (IOException e)
+        {
+            Log.v(getString(R.string.app_name), e.getMessage());
+System.out.println("error = "+e.getMessage());
+        }
+    }
+
+
+    // Деструктор активити
+    @Override
+    protected void onDestroy()
+    {
+
+        int PlayBackPos;
+
+        // Останавливаем медиа плеер
+        if (mp.isPlaying())
+        {
+            mp.stop();
+        };
+
+        PlayBackPos=mp.getCurrentPosition();
+
+        // Сохраняем данные для будущего запуска не с нуля
+        Saving(PlayBackPos);
+
+        // Избавляемся от медиаплеера
+        mp.release();
+
+//        stopServ();
+
+        super.onDestroy();
+
+    }
+
+    // Сохранение данных
+    private void Saving(int _PlayBackPos)
+    {
+        // Получаем содержимое и удаляем пробелы
+        String MyDir = mTextView1.getText().toString().trim();
+        String PlayedFile = mTextView3.getText().toString().trim();
+
+
+        // Загружаем редактор настроек и вписываем новые значения
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("MyDir", MyDir);
+        editor.putString("PlayedFile", PlayedFile);
+        editor.putInt("FilePos", currentPosition);
+        editor.putInt("PlayBackPos", _PlayBackPos);
+
+        // Сохраняем данные. Если не выполнить - ничего не сохранится
+        editor.commit();
+    }
+
 
 }
