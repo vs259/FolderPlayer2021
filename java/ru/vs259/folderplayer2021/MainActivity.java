@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     public static UUID MY_UUID;
     public static final String PREFS_NAME = "MyPrefsFile";            // Файл для хранения настроек
     private int currentPosition = 0;
-//    public static String START_DIR = "/mnt/sdcard";
+//    public static String START_DIR = "/mnt/sdcard";  /storage/090D-5F26    /storage/emulated/0
     public static String START_DIR = "/storage/090D-5F26";
     public static String MAIN_DIR = "/storage/090D-5F26";
     private List<String> songs = new ArrayList<String>();
@@ -145,6 +146,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             }
         }
 
+//        if (START_DIR.equals(""))
+
         // Получение указателей на объекты
         mTextView3= (TextView)findViewById(R.id.textView3);
         mTextView1= (TextView)findViewById(R.id.textView1);
@@ -231,6 +234,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     public void onMyButtonClick(View view)
     {
+
+//        String file = Environment.getExternalStoragePublicDirectory(Environment.Music).getAbsolutePath();
+//        String file = getExternalFilesDir(null).getAbsolutePath();
+//        System.out.println("path = "+file);
+
+//        System.out.println(System.getenv("SECONDARY_STORAGE"));
+
+//        START_DIR = System.getenv("SECONDARY_STORAGE");
+
+
         // Остановить плеер
         if (mp.isPlaying())
             mp.pause();
