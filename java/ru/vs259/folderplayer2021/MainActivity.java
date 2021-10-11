@@ -6,13 +6,18 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Environment;
 import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +29,8 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private List<String> songs = new ArrayList<String>();
 //    private static final int REQUEST_SELECT_DIR=99;
     final String ParentString = "..";
+
+    private static final int MY_REQUEST_CODE_PERMISSION = 1000;
 
 
     ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -114,6 +123,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Проверка наличия необходимых разрешений
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) { // Level 23
+
+            // Check if we have Call permission
+            int permisson = ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE);
+
+            if (permisson != PackageManager.PERMISSION_GRANTED) {
+                // If don't have permission so prompt the user.
+                this.requestPermissions(
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        MY_REQUEST_CODE_PERMISSION
+                );
+//                return;
+            }
+        }
 
         // Получение указателей на объекты
         mTextView3= (TextView)findViewById(R.id.textView3);
@@ -206,6 +232,7 @@ public class MainActivity extends AppCompatActivity {
             mp.pause();
 
         startMyListActivity();
+
     }
 
 
@@ -260,53 +287,12 @@ public class MainActivity extends AppCompatActivity {
 
         File home = new File(_dir);
         Mp3Filter filter = new Mp3Filter();
-System.out.println("filter = " + filter.toString());
-        if (home.listFiles(filter).length > 0)
+
+        if (home.list(filter).length > 0)
         {
-            for (File file : home.listFiles(filter))
-            {
-                songs.add(file.getName());
-            }
-
-            // Сортировка массива имен
-            for (int j = 0; j < songs.size(); j++)
-            {
-                for (int i = j + 1; i < songs.size(); i++)
-                {
-                    if (songs.get(i).compareTo(songs.get(j)) < 0)
-                    {
-                        String t = songs.get(j);
-                        songs.set(j, songs.get(i));
-                        songs.set(i, t);
-                    }
-                }
-            }
+            String[] songs = home.list(filter);
+            Arrays.sort(songs);
         }
-
-/*
-        public ArrayList<String> findSAFs(File dir, ArrayList<String> matchingSAFFileNames) {
-        String safPattern = ".saf";
-
-        File listFile[] = dir.listFiles();
-
-        if (listFile != null) {
-            for (int i = 0; i < listFile.length; i++) {
-
-                if (listFile[i].isDirectory()) {
-                    findSAFs(listFile[i], matchingSAFFileNames);
-                } else {
-                    if (listFile[i].getName().endsWith(safPattern)){
-                        matchingSAFFileNames.add(dir.toString() + File.separator + listFile[i].getName());
-                        //System.out.println("Found one! " + dir.toString() + listFile[i].getName());
-                    }
-                }
-            }
-        }
-        //System.out.println("Outgoing size: " + matchingSAFFileNames.size());
-        return matchingSAFFileNames;
-        }
-
- */
     }
 
     // Создание фильтра по расширениям файлов
@@ -314,8 +300,7 @@ System.out.println("filter = " + filter.toString());
     {
         public boolean accept(File dir, @NonNull String name)
         {
-            return (name.endsWith(".mp3"));
-//            return (name.endsWith(".thumbnail"));
+            return (name.endsWith("mp3"));
         }
     }
 
