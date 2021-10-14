@@ -8,7 +8,10 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -18,6 +21,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -36,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         MediaController.MediaPlayerControl, View.OnTouchListener
 {
 
+    private static final int ID_ABOUT = 0;
     private TextView mTextView1;
     private Button varSelectFolderBtn;
     private TextView mTextView3;
@@ -482,8 +489,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         }
         catch (IOException e)
         {
-            Log.v(getString(R.string.app_name), e.getMessage());
-System.out.println("error = "+e.getMessage());
+//            Log.v(getString(R.string.app_name), e.getMessage());
+//            System.out.println("error = "+e.getMessage());
+            mTextView3.setText("error = "+e.getMessage());
         }
     }
 
@@ -534,6 +542,72 @@ System.out.println("error = "+e.getMessage());
         // Сохраняем данные. Если не выполнить - ничего не сохранится
         editor.commit();
     }
+
+    // Создание меню
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.icon_menu, menu);
+        return true;
+    }
+
+    // Обработка выбора пункта меню
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch (item.getItemId())
+        {
+            case R.id.quit:
+                quit();
+                return true;
+            case R.id.about:
+                about();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    // Обработка пункта меню Выход
+    private void quit()
+    {
+        finish();
+    }
+
+    // Обработка пункта меню О программе
+    private void about()
+    {
+        // вызываем диалог
+        showDialog(ID_ABOUT);
+    }
+
+    // Создание окна диалога для вывода различных сообщений
+    @Override
+    protected Dialog onCreateDialog(int id)
+    {
+        switch (id)
+        {
+            case ID_ABOUT:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(R.string.copiRight);
+
+                // создаем кнопку "Yes" и обработчик события
+                builder.setPositiveButton(R.string.OKBtn, new DialogInterface.OnClickListener()
+                {
+                    public void onClick(DialogInterface dialog, int id)
+                    {
+
+                        // Ничего не делаем
+                    }
+                });
+
+                builder.setCancelable(false);
+                return builder.create();
+            default:
+        }
+        return null;
+    }
+
 
 
 }
