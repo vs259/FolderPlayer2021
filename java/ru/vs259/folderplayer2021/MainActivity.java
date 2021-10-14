@@ -19,6 +19,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
@@ -44,21 +45,19 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     private static final int ID_ABOUT = 0;
     private TextView mTextView1;
-    private Button varSelectFolderBtn;
+//    private Button varSelectFolderBtn;
     private TextView mTextView3;
     private ImageButton varPrevBtn;
     private ImageButton varNextBtn;
     private View theView;
     private MediaPlayer mp = new MediaPlayer();
     private MediaController mediaController;
-    public static UUID MY_UUID;
     public static final String PREFS_NAME = "MyPrefsFile";            // Файл для хранения настроек
     private int currentPosition = 0;
 //    public static String START_DIR = "/mnt/sdcard";  /storage/090D-5F26    /storage/emulated/0
     public static String START_DIR = "/storage/090D-5F26";
     public static String MAIN_DIR = "/storage/090D-5F26";
     private List<String> songs = new ArrayList<String>();
-//    private static final int REQUEST_SELECT_DIR=99;
     final String ParentString = "..";
 
     private static final int MY_REQUEST_CODE_PERMISSION = 1000;
@@ -77,11 +76,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                 File f = null;
                 if(result.getResultCode() == Activity.RESULT_OK){
                     Intent data = result.getData();
-//                    String selectedDir = intent.getStringExtra("text");
-//                    textView.setText(selectedDir);
-//                    Visualisation(intent.getStringExtra("text"));
-//                    if (resultCode == RESULT_OK)
-//                    {
                         if (data.getStringExtra("text").equals(ParentString))          // Если выбран "На уровень вверх"
                         {
                             f = new File(START_DIR);
@@ -117,11 +111,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                                 startMyListActivity();
                             }
                         }
-//                    }
-//                    else
-//                    {
-//                        mTextView3.setText();
-//                    }
 
                     Visualisation(START_DIR);
                 }
@@ -153,12 +142,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             }
         }
 
-//        if (START_DIR.equals(""))
+        if( isExternalStorageReadable() )
+            START_DIR = getSDcardPath();
 
         // Получение указателей на объекты
         mTextView3= (TextView)findViewById(R.id.textView3);
         mTextView1= (TextView)findViewById(R.id.textView1);
-        varSelectFolderBtn = (Button) findViewById(R.id.SelectFolder);
+//        varSelectFolderBtn = (Button) findViewById(R.id.SelectFolder);
         varPrevBtn = (ImageButton) findViewById(R.id.prevBtn);
         varNextBtn = (ImageButton) findViewById(R.id.nextBtn);
 
@@ -169,9 +159,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         mediaController = new MediaController(this);
 
         TelephonyManager teleMngr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-//        teleMngr.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_CALL_STATE);
-//        MY_UUID = UUID.fromString(teleMngr.getDeviceId());
-        MY_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
+        teleMngr.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_CALL_STATE);
 
         // Считывание сохраненных значений
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -207,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         // Визуализация
         Visualisation(START_DIR);
 
+
         // Обработчики событий, получаемых от объектов пользовательского интерфейса
         // Кнопка ПРЕДЫДУЩИЙ ФАЙЛ
         varPrevBtn.setOnClickListener(new View.OnClickListener()
@@ -241,22 +230,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     public void onMyButtonClick(View view)
     {
-
-//        String file = Environment.getExternalStoragePublicDirectory(Environment.Music).getAbsolutePath();
-//        String file = getExternalFilesDir(null).getAbsolutePath();
-//        System.out.println("path = "+file);
-
-//        System.out.println(System.getenv("SECONDARY_STORAGE"));
-
-//        START_DIR = System.getenv("SECONDARY_STORAGE");
-
-
         // Остановить плеер
         if (mp.isPlaying())
             mp.pause();
 
         startMyListActivity();
-
     }
 
 
@@ -596,7 +574,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                 {
                     public void onClick(DialogInterface dialog, int id)
                     {
-
                         // Ничего не делаем
                     }
                 });
@@ -608,6 +585,42 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         return null;
     }
 
+    // Класс, отслеживающий состояние телефона
+    class MyPhoneStateListener extends PhoneStateListener
+    {
+        @Override
+        public void onCallStateChanged(int state, String incomingNumber)
+        {
+            super.onCallStateChanged(state, incomingNumber);
 
+            switch (state)
+            {
+                case TelephonyManager.CALL_STATE_IDLE:
+                    mp.start();
+                    break;
+                case TelephonyManager.CALL_STATE_RINGING:
+                    mp.pause();
+                    Saving(mp.getCurrentPosition());
+                    break;
+                case TelephonyManager.CALL_STATE_OFFHOOK:
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
+    /* Checks if external storage is available to at least read */
+    public boolean isExternalStorageReadable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    private String getSDcardPath() {
+        return Environment.getExternalStorageDirectory().getPath();
+    }
 }
