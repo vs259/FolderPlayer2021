@@ -14,19 +14,23 @@ import android.widget.ListView;
 public class FolderListClass extends ListActivity {
 
     private List<String> item = null;
-    final String ParentString = "..";
+//    final String ParentString = "..";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         item = new ArrayList<String>();
-        item.add(ParentString);
 
         // Обращение к области бандла для получения переданных аргументов
         Bundle b = this.getIntent().getExtras();
 
         String path = b.getString("StartDir");
+        Boolean isParentLevel = b.getBoolean("isParentLevel");
+        String ParentString = b.getString("ParentString");
+
+        if(isParentLevel)
+            item.add(ParentString);
 
         File[] dir = new File(path).listFiles();
         for(int i = 0; i < dir.length; i++)
@@ -44,8 +48,10 @@ public class FolderListClass extends ListActivity {
     {
         // Возвращаем результат
         String item = (String) getListAdapter().getItem(position);
+        int pos = (int) getListAdapter().getItemId(position);
         Intent data = new Intent();
         data.putExtra("text", item);
+        data.putExtra("position", pos);
         setResult(RESULT_OK, data);             // Устанавливаем результат
         finish();                               // Завершаем Activity
         return;                                 // Завершаем исполнение кода

@@ -67,7 +67,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     private int newPosition = 0;
 
 
-
+    ActivityResultLauncher<Intent> mStartForSettingsResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+System.out.println(result.getResultCode());
+            });
 
     ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -80,22 +83,18 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                             f = new File(START_DIR);
                             START_DIR=f.getParent();
                             mTextView3.setText(R.string.upSelected);
-                            if (!START_DIR.equals("/"))
-                                startMyListActivity();
-                            else
-                                START_DIR = MAIN_DIR;
                         }
                         else                                                           // Если выбран файл или папка
                         {
                             f = new File(START_DIR+"/"+data.getStringExtra("text"));
+
+                            // Создание массива - плэйлиста
+                            updateSongList(START_DIR);
                             if (f.isDirectory())                                      // Выбрана папка
                             {
                                 START_DIR = START_DIR+"/"+data.getStringExtra("text");
 
                                 // Старт проигрывателя перенесен под эту кнопку
-                                // Создание массива - плэйлиста
-                                updateSongList(START_DIR);
-
                                 if (songs.size()>0)
                                 {
                                     playSong(START_DIR + "/"+songs.get(currentPosition), songs.get(currentPosition),0);
@@ -107,7 +106,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                             }
                             else                                                    // Выбран файл
                             {
-                                startMyListActivity();
+                                if (songs.size()>0)
+                                    playSong(START_DIR + "/"+songs.get(data.getIntExtra("position", 0)-1), songs.get(data.getIntExtra("position", 0)-1),0);
                             }
                         }
 
@@ -255,6 +255,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         // Вызов вспомогательной формы
         Intent intent = new Intent(this, FolderListClass.class);
         intent.putExtra("StartDir", START_DIR);
+        if(START_DIR.equals(MAIN_DIR))
+            intent.putExtra("isParentLevel", false);
+        else
+            intent.putExtra("isParentLevel", true);
+        intent.putExtra("ParentString", ParentString);
 
         mStartForResult.launch(intent);
 
@@ -427,7 +432,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         }
     }
 
-    // Визуализация выбора в текстовых полях
+    // Визуализация выбора директории
     protected void Visualisation(String text1)
     {
         mTextView1.setText(text1);
@@ -474,7 +479,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         {
 //            Log.v(getString(R.string.app_name), e.getMessage());
 //            System.out.println("error = "+e.getMessage());
-            mTextView3.setText("error = "+e.getMessage());
+//            mTextView3.setText("error = "+e.getMessage());
+            mTextView3.setText("Это - папка, а не файл");
         }
     }
 
@@ -506,16 +512,37 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     }
 
+/*
     // По возврату из формы настроек
-
     protected void onResume() {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        START_DIR = settings.getString("start_dir","/storage/emulated/0");
-        MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
-        currentPosition = settings.getInt("FilePos", 0);
+//        START_DIR = settings.getString("start_dir","/storage/emulated/0");
+//        MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
+        String MyDir = settings.getString("MyDir","/storage/emulated/0");
+//        currentPosition = settings.getInt("FilePos", 0);
+//        mTextView1.setText(START_DIR);
+
+
         super.onResume();
+//        getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+
+System.out.println("OK "+ MyDir);
     }
 
+ */
+/*
+    SharedPreferences.OnSharedPreferenceChangeListener prefListener =
+            new SharedPreferences.OnSharedPreferenceChangeListener()
+            {
+                public void onSharedPreferenceChanged(SharedPreferences prefs,String key)
+                {
+                    if(key.equals("MyDir"))
+                    {
+System.out.println("OK");
+                    }
+                }
+            };
+*/
     // Сохранение данных
     private void Saving(int _PlayBackPos)
     {
@@ -573,7 +600,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
         // Вызов формы настроек
         Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+        mStartForSettingsResult.launch(intent);
 
     }
 
