@@ -88,11 +88,12 @@ System.out.println(result.getResultCode());
                         {
                             f = new File(START_DIR+"/"+data.getStringExtra("text"));
 
-                            // Создание массива - плэйлиста
-                            updateSongList(START_DIR);
                             if (f.isDirectory())                                      // Выбрана папка
                             {
                                 START_DIR = START_DIR+"/"+data.getStringExtra("text");
+
+                                // Создание массива - плэйлиста
+                                updateSongList(START_DIR);
 
                                 // Старт проигрывателя перенесен под эту кнопку
                                 if (songs.size()>0)
@@ -106,6 +107,8 @@ System.out.println(result.getResultCode());
                             }
                             else                                                    // Выбран файл
                             {
+                                // Создание массива - плэйлиста
+                                updateSongList(START_DIR);
                                 if (songs.size()>0)
                                     playSong(START_DIR + "/"+songs.get(data.getIntExtra("position", 0)-1), songs.get(data.getIntExtra("position", 0)-1),0);
                             }
