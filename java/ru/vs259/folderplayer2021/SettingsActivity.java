@@ -1,7 +1,11 @@
 package ru.vs259.folderplayer2021;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,51 +33,51 @@ public class SettingsActivity extends AppCompatActivity {
 
     }
 
-    public static class SettingsFragment extends PreferenceFragmentCompat {
+    // Создание меню
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.settings_menu, menu);
+        return true;
+    }
 
-//        private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
+    // Обработка выбора пункта меню
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch (item.getItemId())
+        {
+            case R.id.saveAndQuit:
+                saveAndQuit();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void saveAndQuit(){
+//        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+//        String MyDir = settings.getString("MyDir","/storage/emulated/0");
+        Intent data = new Intent();
+//        data.putExtra("MyDir", MyDir);
+        setResult(RESULT_OK, data);             // Устанавливаем результат
+        finish();
+        return;
+    }
+
+
+    // Деструктор активити
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+    }
+
+    public static class SettingsFragment extends PreferenceFragmentCompat {
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-
-//            final SharedPreferences getPrefs = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
-
-/*
-            preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-                @Override
-                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-
-                    if (key.equals("MyDir")) {
-//                        Preference notifModePref = findPreference(key);
-//                        notifModePref.setSummary(sharedPreferences.getString(key, ""));
-
-System.out.println(sharedPreferences.getString(key, ""));
-                    }
-                }
-            };
-
-*/
-
         }
-/*
-        @Override
-        public void onResume() {
-            super.onResume();
-
-            getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(preferenceChangeListener);
-
-//            Preference notifModePref = findPreference("MyDir");
-//            notifModePref.setSummary(getPreferenceScreen().getSharedPreferences().getString("MyDir", ""));
-
-        }
-
-        @Override
-        public void onPause() {
-            getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
-
-            super.onPause();
-        }
-*/
     }
 }

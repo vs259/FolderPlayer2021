@@ -14,7 +14,6 @@ import android.widget.ListView;
 public class FolderListClass extends ListActivity {
 
     private List<String> item = null;
-//    final String ParentString = "..";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

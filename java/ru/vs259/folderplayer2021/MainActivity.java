@@ -69,7 +69,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     ActivityResultLauncher<Intent> mStartForSettingsResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             result -> {
-System.out.println(result.getResultCode());
+                if(result.getResultCode() == Activity.RESULT_OK){
+//                    Intent data = result.getData();
+                    Saving(0);
+                }
             });
 
     ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -160,7 +163,6 @@ System.out.println(result.getResultCode());
         teleMngr.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_CALL_STATE);
 
         // Считывание сохраненных значений
-//        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         START_DIR = settings.getString("start_dir","/storage/emulated/0");
         MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
@@ -515,42 +517,13 @@ System.out.println(result.getResultCode());
 
     }
 
-/*
-    // По возврату из формы настроек
-    protected void onResume() {
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-//        START_DIR = settings.getString("start_dir","/storage/emulated/0");
-//        MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
-        String MyDir = settings.getString("MyDir","/storage/emulated/0");
-//        currentPosition = settings.getInt("FilePos", 0);
-//        mTextView1.setText(START_DIR);
-
-
-        super.onResume();
-//        getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-
-System.out.println("OK "+ MyDir);
-    }
-
- */
-/*
-    SharedPreferences.OnSharedPreferenceChangeListener prefListener =
-            new SharedPreferences.OnSharedPreferenceChangeListener()
-            {
-                public void onSharedPreferenceChanged(SharedPreferences prefs,String key)
-                {
-                    if(key.equals("MyDir"))
-                    {
-System.out.println("OK");
-                    }
-                }
-            };
-*/
     // Сохранение данных
     private void Saving(int _PlayBackPos)
     {
         // Получаем содержимое и удаляем пробелы
-        String MyDir = mTextView1.getText().toString().trim();
+        String MyDir;
+        MyDir = mTextView1.getText().toString().trim();
+        if(!MyDir.startsWith("/")) MyDir = START_DIR;
         String PlayedFile = mTextView3.getText().toString().trim();
 
 

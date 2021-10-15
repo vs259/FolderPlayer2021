@@ -15,6 +15,9 @@
     <!-- Controls -->
     <string name="selectFolderBtn">Выбрать папку</string>
 
+    <!-- Menu -->
+    <string name="saveSettingsAndQuit">Сохранить и выйти</string>
+
     <!-- Toasts -->
     <string name="textNoFiles">В выбранной папке нет файлов mp3</string>
     <string name="upSelected">Выбран предыдущий уровень</string>
