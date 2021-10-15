@@ -5,6 +5,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.preference.PreferenceManager;
 
 import android.Manifest;
 import android.app.Activity;
@@ -45,18 +46,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     private static final int ID_ABOUT = 0;
     private TextView mTextView1;
-//    private Button varSelectFolderBtn;
     private TextView mTextView3;
     private ImageButton varPrevBtn;
     private ImageButton varNextBtn;
     private View theView;
     private MediaPlayer mp = new MediaPlayer();
     private MediaController mediaController;
-    public static final String PREFS_NAME = "MyPrefsFile";            // Файл для хранения настроек
     private int currentPosition = 0;
 //    public static String START_DIR = "/mnt/sdcard";  /storage/090D-5F26    /storage/emulated/0
-    public static String START_DIR = "/storage/090D-5F26";
-    public static String MAIN_DIR = "/storage/090D-5F26";
+    public static String START_DIR = "/storage/emulated/0";
+    public static String MAIN_DIR = "/storage/emulated/0";
     private List<String> songs = new ArrayList<String>();
     final String ParentString = "..";
 
@@ -142,13 +141,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             }
         }
 
-        if( isExternalStorageReadable() )
-            START_DIR = getSDcardPath();
-
         // Получение указателей на объекты
         mTextView3= (TextView)findViewById(R.id.textView3);
         mTextView1= (TextView)findViewById(R.id.textView1);
-//        varSelectFolderBtn = (Button) findViewById(R.id.SelectFolder);
         varPrevBtn = (ImageButton) findViewById(R.id.prevBtn);
         varNextBtn = (ImageButton) findViewById(R.id.nextBtn);
 
@@ -162,11 +157,21 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         teleMngr.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_CALL_STATE);
 
         // Считывание сохраненных значений
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+//        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        START_DIR = settings.getString("start_dir","/storage/emulated/0");
+        MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
         String MyDir = settings.getString("MyDir"," ");
         String PlayedFile = settings.getString("PlayedFile"," ");
         currentPosition = settings.getInt("FilePos", 0);
         final int PlayBackPos = settings.getInt("PlayBackPos", 0);
+
+        // Перенаправление в настройки, если каталог не найден
+        File file = new File(MyDir);
+        if (!file.isDirectory()) {
+            settings();
+            return;
+        }
 
         // Обработка считанных значений
         if (!(MyDir.equals(" ")))
@@ -501,6 +506,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     }
 
+    // По возврату из формы настроек
+
+    protected void onResume() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        START_DIR = settings.getString("start_dir","/storage/emulated/0");
+        MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
+        currentPosition = settings.getInt("FilePos", 0);
+        super.onResume();
+    }
+
     // Сохранение данных
     private void Saving(int _PlayBackPos)
     {
@@ -510,9 +525,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
 
         // Загружаем редактор настроек и вписываем новые значения
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        settings.edit().clear().commit();          // Полная очистка
         SharedPreferences.Editor editor = settings.edit();
+
         editor.putString("MyDir", MyDir);
+        editor.putString("start_dir", START_DIR);
+        editor.putString("main_dir", MAIN_DIR);
         editor.putString("PlayedFile", PlayedFile);
         editor.putInt("FilePos", currentPosition);
         editor.putInt("PlayBackPos", _PlayBackPos);
@@ -538,12 +557,24 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             case R.id.quit:
                 quit();
                 return true;
+            case R.id.settings:
+                settings();
+                return true;
             case R.id.about:
                 about();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    // Обработчик пункта меню "Настройки"
+    private void settings(){
+
+        // Вызов формы настроек
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+
     }
 
     // Обработка пункта меню Выход
