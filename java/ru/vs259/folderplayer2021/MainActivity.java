@@ -2,7 +2,7 @@ package ru.vs259.folderplayer2021;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
+import androidx.annotation.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
@@ -71,7 +71,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             result -> {
                 if(result.getResultCode() == Activity.RESULT_OK){
 //                    Intent data = result.getData();
-                    Saving(0);
+//                    Saving(0);
+                    SharedPreferences settings= PreferenceManager.getDefaultSharedPreferences(this);
+                    String MyDir = settings.getString("MyDir","/storage/emulated/0");
+                    START_DIR = settings.getString("START_DIR","/storage/emulated/0");
+//                    login = prefs.getString("login", "не установлено");
+System.out.println("MyDir" + MyDir);
+System.out.println("START_DIR" + START_DIR);
+                    mTextView1.setText(MyDir);
+                    updateSongList(START_DIR);
+
                 }
             });
 
