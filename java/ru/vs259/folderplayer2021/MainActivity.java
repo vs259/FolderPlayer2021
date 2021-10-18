@@ -2,7 +2,7 @@ package ru.vs259.folderplayer2021;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
+import androidx.annotation.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
@@ -70,8 +70,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     ActivityResultLauncher<Intent> mStartForSettingsResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if(result.getResultCode() == Activity.RESULT_OK){
-//                    Intent data = result.getData();
-                    Saving(0);
+                    SharedPreferences settings= PreferenceManager.getDefaultSharedPreferences(this);
+                    MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
+                    START_DIR = settings.getString("start_dir","/storage/emulated/0");
+                    String MyDir = settings.getString("MyDir","/storage/emulated/0");
+                    mTextView1.setText(MyDir);
+                    updateSongList(START_DIR);
                 }
             });
 
@@ -645,6 +649,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     }
 
     /* Checks if external storage is available to at least read */
+/*
     public boolean isExternalStorageReadable() {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state) ||
@@ -657,4 +662,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     private String getSDcardPath() {
         return Environment.getExternalStorageDirectory().getPath();
     }
+
+ */
 }

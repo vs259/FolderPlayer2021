@@ -1,21 +1,28 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory app:title="Каталоги и пути к ним (начинаются с /)">
 
         <EditTextPreference
             app:key="main_dir"
-            app:title="Абсолютный адрес внешней CD карты"
-            app:useSimpleSummaryProvider="true" />
+            app:title="Абсолютный адрес внешней CD карты (лучше не менять)"
+            app:useSimpleSummaryProvider="true"
+            android:layout_width="wrap_content"
+            />
 
         <EditTextPreference
             app:key="start_dir"
             app:title="Стартовый каталог"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            android:layout_width="wrap_content"
+            />
 
         <EditTextPreference
             app:key="MyDir"
             app:title="Текущий каталог"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            android:layout_width="wrap_content"
+            />
 
     </PreferenceCategory>
 

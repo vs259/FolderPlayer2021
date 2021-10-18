@@ -19,6 +19,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
+
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
@@ -30,6 +31,8 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
+
 
     }
 
@@ -56,10 +59,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void saveAndQuit(){
-//        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-//        String MyDir = settings.getString("MyDir","/storage/emulated/0");
         Intent data = new Intent();
-//        data.putExtra("MyDir", MyDir);
         setResult(RESULT_OK, data);             // Устанавливаем результат
         finish();
         return;
