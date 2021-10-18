@@ -59,10 +59,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void saveAndQuit(){
-//        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-//        String MyDir = settings.getString("MyDir","/storage/emulated/0");
         Intent data = new Intent();
-//        data.putExtra("MyDir", MyDir);
         setResult(RESULT_OK, data);             // Устанавливаем результат
         finish();
         return;
