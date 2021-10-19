@@ -7,6 +7,7 @@
     android:background="@drawable/folderbg"
     >
 
+
     <TextView
         android:id="@+id/textView3"
         android:layout_width="fill_parent"
@@ -71,5 +72,6 @@
             />
 
     </LinearLayout>
+
 
 </LinearLayout>

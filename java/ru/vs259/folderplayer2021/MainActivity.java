@@ -17,9 +17,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -35,8 +38,10 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     private MediaController mediaController;
     private int currentPosition = 0;
 //    public static String START_DIR = "/mnt/sdcard";  /storage/090D-5F26    /storage/emulated/0
-    public static String START_DIR = "/storage/emulated/0";
+    public static String START_DIR = "";
     public static String MAIN_DIR = "/storage/emulated/0";
     private List<String> songs = new ArrayList<String>();
     final String ParentString = "..";
@@ -71,9 +76,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             result -> {
                 if(result.getResultCode() == Activity.RESULT_OK){
                     SharedPreferences settings= PreferenceManager.getDefaultSharedPreferences(this);
-                    MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
-                    START_DIR = settings.getString("start_dir","/storage/emulated/0");
-                    String MyDir = settings.getString("MyDir","/storage/emulated/0");
+                    MAIN_DIR = settings.getString("main_dir", MAIN_DIR);
+                    START_DIR = settings.getString("start_dir", MAIN_DIR);
+                    String MyDir = settings.getString("MyDir", MAIN_DIR);
                     mTextView1.setText(MyDir);
                     updateSongList(START_DIR);
                 }
@@ -129,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             });
 
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -151,6 +157,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             }
         }
 
+
         // Получение указателей на объекты
         mTextView3= (TextView)findViewById(R.id.textView3);
         mTextView1= (TextView)findViewById(R.id.textView1);
@@ -166,14 +173,47 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         TelephonyManager teleMngr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         teleMngr.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_CALL_STATE);
 
+        // Получение пути к внешней флэш карте
+        String EXT_CARD_DIR = "/storage/emulated/0";
+        try {
+            StorageManager storageManager = (StorageManager) this.getSystemService(Context.STORAGE_SERVICE);
+            Method method = storageManager.getClass().getMethod("getVolumeList");
+            StorageVolume[] storageVolumes = (StorageVolume[]) method.invoke(storageManager);
+            if (storageVolumes != null && storageVolumes.length > 0) {
+
+                HashSet storageDirectories = new HashSet<>();
+                for (StorageVolume volume : storageVolumes) {
+                    storageDirectories.add(new File(volume.getMediaStoreVolumeName()));
+                    if(volume.isRemovable() && !volume.isEmulated() && !volume.isPrimary()) {
+/*
+                        System.out.println("isRemovable = " + volume.isRemovable());
+                        System.out.println("Emulated = " + volume.isEmulated());
+                        System.out.println("Primary = " + volume.isPrimary());
+
+                        System.out.println(" = " + volume.getDirectory());
+
+ */
+                        EXT_CARD_DIR = volume.getDirectory().toString();
+                    }
+                }
+
+
+            }
+
+        } catch (Exception e) {
+            mTextView1.setText(e.getMessage());
+        }
+
         // Считывание сохраненных значений
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        START_DIR = settings.getString("start_dir","/storage/emulated/0");
-        MAIN_DIR = settings.getString("main_dir","/storage/emulated/0");
-        String MyDir = settings.getString("MyDir"," ");
+        MAIN_DIR = settings.getString("main_dir",EXT_CARD_DIR);
+        START_DIR = settings.getString("start_dir",EXT_CARD_DIR);
+        String MyDir = settings.getString("MyDir",EXT_CARD_DIR);
         String PlayedFile = settings.getString("PlayedFile"," ");
         currentPosition = settings.getInt("FilePos", 0);
         final int PlayBackPos = settings.getInt("PlayBackPos", 0);
+
+
 
         // Перенаправление в настройки, если каталог не найден
         File file = new File(MyDir);
@@ -578,10 +618,15 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     // Обработчик пункта меню "Настройки"
     private void settings(){
 
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("main_dir", MAIN_DIR);
+        editor.commit();
+
         // Вызов формы настроек
         Intent intent = new Intent(this, SettingsActivity.class);
+//        intent.putExtra("MainDir", MAIN_DIR);
         mStartForSettingsResult.launch(intent);
-
     }
 
     // Обработка пункта меню Выход
@@ -648,20 +693,4 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         }
     }
 
-    /* Checks if external storage is available to at least read */
-/*
-    public boolean isExternalStorageReadable() {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-            return true;
-        }
-        return false;
-    }
-
-    private String getSDcardPath() {
-        return Environment.getExternalStorageDirectory().getPath();
-    }
-
- */
 }
