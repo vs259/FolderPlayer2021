@@ -2,7 +2,9 @@ package ru.vs259.folderplayer2021;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.*;
+//import androidx.annotation.*;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         setContentView(R.layout.activity_main);
 
         // Проверка наличия необходимых разрешений
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) { // Level 23
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // Level 23
 
             // Check if we have Call permission
             int permisson = ActivityCompat.checkSelfPermission(this,
@@ -159,8 +161,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
 
         // Получение указателей на объекты
-        mTextView3= (TextView)findViewById(R.id.textView3);
-        mTextView1= (TextView)findViewById(R.id.textView1);
+        mTextView3 = (TextView)findViewById(R.id.textView3);
+        mTextView1 = (TextView)findViewById(R.id.textView1);
         varPrevBtn = (ImageButton) findViewById(R.id.prevBtn);
         varNextBtn = (ImageButton) findViewById(R.id.nextBtn);
 
@@ -174,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         teleMngr.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_CALL_STATE);
 
         // Получение пути к внешней флэш карте
+
         String EXT_CARD_DIR = "/storage/emulated/0";
         try {
             StorageManager storageManager = (StorageManager) this.getSystemService(Context.STORAGE_SERVICE);
@@ -181,19 +184,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             StorageVolume[] storageVolumes = (StorageVolume[]) method.invoke(storageManager);
             if (storageVolumes != null && storageVolumes.length > 0) {
 
-                HashSet storageDirectories = new HashSet<>();
                 for (StorageVolume volume : storageVolumes) {
-                    storageDirectories.add(new File(volume.getMediaStoreVolumeName()));
                     if(volume.isRemovable() && !volume.isEmulated() && !volume.isPrimary()) {
-/*
-                        System.out.println("isRemovable = " + volume.isRemovable());
-                        System.out.println("Emulated = " + volume.isEmulated());
-                        System.out.println("Primary = " + volume.isPrimary());
 
-                        System.out.println(" = " + volume.getDirectory());
-
- */
-                        EXT_CARD_DIR = volume.getDirectory().toString();
+                        // Узнаем версию API
+                        if (Build.VERSION.SDK_INT <= 30) {
+                            String str = volume.toString();
+                            str = "/storage/" + str.substring (str.indexOf("(")+1, str.indexOf(")"));
+                            EXT_CARD_DIR = str;
+                        }else
+                            EXT_CARD_DIR = volume.getDirectory().toString();
                     }
                 }
 
@@ -276,8 +276,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
             }
         });
-
-//        startServ();
         // Окончание процедуры создания формы
 
     }
@@ -554,9 +552,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
         // Избавляемся от медиаплеера
         mp.release();
-
-//        stopServ();
-
         super.onDestroy();
 
     }
@@ -625,7 +620,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
         // Вызов формы настроек
         Intent intent = new Intent(this, SettingsActivity.class);
-//        intent.putExtra("MainDir", MAIN_DIR);
         mStartForSettingsResult.launch(intent);
     }
 
